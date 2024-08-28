@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Guide for "Now Playing" Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+        .code-block {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 1em;
+        }
+
+        .steps {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .steps li {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-left: 5px solid #3498db;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Installation Guide for the "Now Playing" Integration</h1>
+
+        <p>This guide will walk you through the installation and setup of the "Now Playing" integration. The integration consists of three files: a Tampermonkey script, an HTML file for OBS display, and a Node.js server script.</p>
+
+        <h2>1. Required Files</h2>
+        <ul>
+            <li><strong>Tampermonkey Script:</strong> <code>Tampermonkey Now Playing Youtube-1.0.24.user.js</code></li>
+            <li><strong>HTML File:</strong> <code>now_playing.html</code></li>
+            <li><strong>Server Script:</strong> <code>server_ohne.js</code></li>
+        </ul>
+
+        <h2>2. Installing the Tampermonkey Script</h2>
+        <ol class="steps">
+            <li>Install the browser extension <a href="https://www.tampermonkey.net/" target="_blank">Tampermonkey</a> if you haven't already.</li>
+            <li>Open the file <code>Tampermonkey Now Playing Youtube-1.0.24.user.js</code> and add the script to Tampermonkey.</li>
+            <li>Enable the script. This script collects the current video information from YouTube and sends it to the server.</li>
+        </ol>
+
+        <h2>3. Setting Up the Node.js Server</h2>
+        <ol class="steps">
+            <li>Ensure that Node.js is installed on your system. If not, download and install it from <a href="https://nodejs.org/" target="_blank">nodejs.org</a>.</li>
+            <li>Save the <code>server_ohne.js</code> script on your computer.</li>
+            <li>Open a terminal (or command prompt) and navigate to the folder where <code>server_ohne.js</code> is located.</li>
+            <li>Run the following command to create a new <code>package.json</code>:
+                <div class="code-block">
+                    npm init -y
+                </div>
+            </li>
+            <li>Install the necessary dependencies by running:
+                <div class="code-block">
+                    npm install ws
+                </div>
+            </li>
+            <li>Start the server with the following command:
+                <div class="code-block">
+                    node server_ohne.js
+                </div>
+            </li>
+            <li>The WebSocket server will now be running and ready to receive data from YouTube.</li>
+        </ol>
+
+        <h2>4. Setting Up the HTML File in OBS</h2>
+        <ol class="steps">
+            <li>Open OBS Studio.</li>
+            <li>Add a new <strong>Browser Source</strong>.</li>
+            <li>In the settings for the browser source, point it to the <code>now_playing.html</code> file on your local computer.</li>
+            <li>Set the dimensions of the source to your desired size (e.g., 1300x300 pixels).</li>
+            <li>Save the settings. The "Now Playing" information will be displayed in your stream as soon as the server receives data.</li>
+        </ol>
+
+        <h2>5. How It Works</h2>
+        <p>The Node.js server receives real-time video information from YouTube via the Tampermonkey script (including title, channel, cover, and progress). This data is then sent to the HTML file, which is displayed in OBS. The display updates every few minutes based on the length of the video and is shown for 30 seconds each time.</p>
+
+        <h2>6. Troubleshooting</h2>
+        <p>If you encounter issues, make sure that:</p>
+        <ul>
+            <li>The Node.js server is running correctly (no errors in the terminal).</li>
+            <li>The Tampermonkey script is enabled and working on YouTube.</li>
+            <li>The OBS browser source is correctly pointing to the <code>now_playing.html</code> file.</li>
+        </ul>
+
+        <p>Good luck with your "Now Playing" integration!</p>
+    </div>
+</body>
+</html>
+

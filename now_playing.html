@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Now Playing with OBS Control</title>
+    <style>
+        body {
+            font-family: 'Almoni Tzar DL 4.0 AAA', monospace;
+            background-color: black;
+            color: #FFD700;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .wrapper-container {
+            background-color: rgba(255, 215, 0, 0.5);
+            border-radius: 13px;
+            padding: 0px;
+            width: 1300px;
+            height: auto;
+            margin: 0 auto;
+            border: 2px solid darkorange;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .now-playing-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 13px;
+            padding: 10px;
+        }
+
+        img {
+            width: 360px;
+            height: 202px;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 2px solid darkorange;
+            border-radius: 5px;
+        }
+
+        .info-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            flex-grow: 1;
+            text-align: left;
+            overflow: hidden;
+        }
+
+        .info {
+            font-size: 47px;
+            margin: 5px 0;
+            line-height: 1.0;
+            color: #FFD700;
+        }
+
+        .progress-container {
+            width: 99.5%;
+            background-color: #555;
+            height: 30px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 2px solid darkorange;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #FFD700;
+            text-align: center;
+            color: black;
+            line-height: 30px;
+            border-radius: 5px;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper-container" id="wrapperContainer">
+        <div class="now-playing-container">
+            <img id="cover" src="default_cover.jpg" alt="Cover Image">
+            <div class="info-container">
+                <div id="title" class="info">Titel</div>
+                <div id="artist" class="info">Kanal</div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = {
+            title: '',
+            artist: '',
+            cover: '',
+            duration: 0,  // In Millisekunden
+            progress: 0    // Fortschritt des Videos in Millisekunden
+        };
+        let nextShowTime;  // Zeitpunkt der nächsten Wiedereinblendung
+        let isVisible = false;  // Anzeige-Status
+        let ws;  // WebSocket-Variable
+        let hideTimeout;  // Timeout für das Verstecken des Containers
+        let checkInterval;  // Interval für die Datenabfrage
+
+        // WebSocket-Verbindung starten und Daten abrufen
+        function startWebSocket() {
+            ws = new WebSocket('ws://localhost:8080');
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                processWebSocketData(data);
+            };
+        }
+
+        // Funktion zur Verarbeitung der WebSocket-Daten
+        function processWebSocketData(data) {
+            const newTitle = data.title;
+            const newArtist = data.artists.join(', ');
+
+            // Sofort einblenden, wenn neue Daten empfangen werden (z.B. neuer Titel)
+            if (newTitle !== currentData.title || newArtist !== currentData.artist) {
+                currentData.title = newTitle;
+                currentData.artist = newArtist;
+                currentData.cover = data.cover;
+                currentData.duration = data.duration;
+                currentData.progress = data.progress;
+
+                updateUI();
+                showNowPlaying();
+                calculateNextShowTime();
+            } else {
+                currentData.progress = data.progress;  // Nur den Fortschritt aktualisieren
+            }
+
+            updateProgressBar();  // Fortschrittsbalken aktualisieren
+        }
+
+        // Fortschrittsbalken basierend auf dem Fortschritt aktualisieren
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercent = (currentData.progress / currentData.duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            progressBar.innerText = `${Math.round(progressPercent)}%`;
+        }
+
+        // Funktion zum Einblenden der "Now Playing"-Anzeige
+        function showNowPlaying() {
+            const wrapperContainer = document.getElementById('wrapperContainer');
+            wrapperContainer.style.opacity = 1;
+            wrapperContainer.style.transform = 'translateY(0px)';
+            isVisible = true;
+
+            console.log(`Einblendung gestartet um ${new Date().toLocaleTimeString()}`);
+
+            // Ausblenden nach 30 Sekunden
+            hideTimeout = setTimeout(hideNowPlaying, 30000); 
+        }
+
+        // Funktion zum Ausblenden der "Now Playing"-Anzeige
+        function hideNowPlaying() {
+            const wrapperContainer = document.getElementById('wrapperContainer');
+            wrapperContainer.style.opacity = 0;
+            wrapperContainer.style.transform = 'translateY(100px)';
+            isVisible = false;
+        }
+
+        // Funktion zur Berechnung des Zeitpunkts der nächsten Wiedereinblendung basierend auf der Videolänge
+        function calculateNextShowTime() {
+            let interval;
+
+            if (currentData.duration <= 10 * 60 * 1000) {  // Bis zu 10 Minuten
+                interval = currentData.duration / 2;  // Zwei Einblendungen, eine in der Hälfte der Zeit
+            } else if (currentData.duration <= 60 * 60 * 1000) {  // 10 bis 60 Minuten
+                interval = 7 * 60 * 1000;  // Alle 7 Minuten
+            } else {  // Länger als 60 Minuten
+                interval = 10 * 60 * 1000;  // Alle 10 Minuten
+            }
+
+            nextShowTime = new Date(Date.now() + interval);
+            console.log(`Nächste Einblendung um: ${nextShowTime.toLocaleTimeString()}`);
+        }
+
+        // Hintergrundüberprüfung alle 5 Sekunden, um den Fortschritt zu aktualisieren und zu prüfen, ob eine Einblendung nötig ist
+        function backgroundCycleCheck() {
+            const currentTime = Date.now();
+
+            // Wenn die Zeit für die nächste Einblendung erreicht ist, wird die Einblendung ausgeführt
+            if (!isVisible && currentTime >= nextShowTime.getTime()) {
+                showNowPlaying();
+                calculateNextShowTime();  // Berechne den nächsten Zeitpunkt für die Wiedereinblendung
+            }
+        }
+
+        // Zyklus für die Datenabfrage und Hintergrundberechnungen starten
+        function startBackgroundCheck() {
+            checkInterval = setInterval(() => {
+                backgroundCycleCheck();  // Zeitlogik für Einblendungen
+                ws.send(JSON.stringify({ request: 'update' }));  // Hole alle 5 Sekunden neue Daten vom Server
+            }, 5000);
+        }
+
+        // UI aktualisieren
+        function updateUI() {
+            document.getElementById('title').innerText = `Titel: ${currentData.title || 'Unknown Title'}`;
+            document.getElementById('artist').innerText = `Kanal: ${currentData.artist || 'Unknown Artist'}`;
+            const imgElement = document.getElementById('cover');
+            imgElement.src = currentData.cover ? currentData.cover : 'default_cover.jpg';
+        }
+
+        // Initialisierung beim Seitenladen
+        window.onload = function () {
+            startWebSocket();  // WebSocket starten
+            startBackgroundCheck();  // Hintergrundüberprüfung und Datenabfrage starten
+        };
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installationsanleitung für "Now Playing" Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+        .code-block {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 1em;
+        }
+
+        .steps {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .steps li {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-left: 5px solid #3498db;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Installationsanleitung für die "Now Playing"-Integration</h1>
+
+<h2>4. Einrichtung der HTML-Datei in OBS</h2>
+        <ol class="steps">
+            <li>Öffnen Sie OBS Studio.</li>
+
+        <p>Diese Anleitung führt Sie durch die Installation und Einrichtung der "Now Playing"-Integration. Diese besteht aus drei Dateien: einem Tampermonkey-Skript, einer HTML-Datei für die Anzeige in OBS, und einem Node.js-Server-Skript.</p>
+
+        <h2>1. Benötigte Dateien</h2>
+        <ul>
+            <li><strong>Tampermonkey-Skript:</strong> <code>Tampermonkey Now Playing Youtube-1.0.24.user.js</code></li>
+            <li><strong>HTML-Datei:</strong> <code>now_playing.html</code></li>
+            <li><strong>Server-Skript:</strong> <code>server_ohne.js</code></li>
+        </ul>
+
+        <h2>2. Installation des Tampermonkey-Skripts</h2>
+        <ol class="steps">
+            <li>Installieren Sie die Browser-Erweiterung <a href="https://www.tampermonkey.net/" target="_blank">Tampermonkey</a>, falls noch nicht geschehen.</li>
+            <li>Öffnen Sie die Datei <code>Tampermonkey Now Playing Youtube-1.0.24.user.js</code> und fügen Sie das Skript in Tampermonkey hinzu.</li>
+            <li>Aktivieren Sie das Skript. Dieses Skript sammelt die aktuellen Videoinformationen von YouTube und sendet diese an den Server.</li>
+        </ol>
+
+        <h2>3. Einrichten des Node.js-Servers</h2>
+        <ol class="steps">
+            <li>Stellen Sie sicher, dass Node.js auf Ihrem System installiert ist. Wenn nicht, laden Sie es von <a href="https://nodejs.org/" target="_blank">nodejs.org</a> herunter und installieren Sie es.</li>
+            <li>Speichern Sie das Skript <code>server_ohne.js</code> auf Ihrem Computer.</li>
+            <li>Öffnen Sie ein Terminal (oder die Eingabeaufforderung) und navigieren Sie zu dem Ordner, in dem sich <code>server_ohne.js</code> befindet.</li>
+            <li>Führen Sie im Terminal den Befehl <code>npm init -y</code> aus, um eine neue <code>package.json</code> zu erstellen.</li>
+            <li>Installieren Sie die erforderlichen Abhängigkeiten mit folgendem Befehl:
+                <div class="code-block">
+                    npm install ws
+                </div>
+            </li>
+            <li>Starten Sie den Server mit dem folgenden Befehl:
+                <div class="code-block">
+                    node server_ohne.js
+                </div>
+            </li>
+            <li>Der WebSocket-Server läuft nun und ist bereit, Daten von YouTube zu empfangen.</li>
+        </ol>
+
+        <h2>4. Einrichtung der HTML-Datei in OBS</h2>
+        <ol class="steps">
+            <li>Öffnen Sie OBS Studio.</li>
+            <li>Fügen Sie eine neue <strong>Browser-Quelle</strong> hinzu.</li>
+            <li>Verweisen Sie in den Einstellungen der Browser-Quelle auf die Datei <code>now_playing.html</code>, die auf Ihrem lokalen Computer gespeichert ist.</li>
+            <li>Stellen Sie die Abmessungen der Quelle auf die Größe ein (1400x500 Pixel).</li>
+            <li>Speichern Sie die Einstellungen. Die "Now Playing"-Informationen werden nun in Ihrem Stream angezeigt, sobald der Server die Daten erhält.</li>
+        </ol>
+
+        <h2>5. Funktionsweise</h2>
+        <p>Der Node.js-Server empfängt über das Tampermonkey-Skript die aktuellen Videoinformationen von YouTube (Titel, Kanal, Cover und Fortschritt). Diese Daten werden dann an die HTML-Datei weitergegeben, die in OBS angezeigt wird. Die Anzeige wird alle paar Minuten gemäß der Länge des Videos aktualisiert und für 30 Sekunden eingeblendet.</p>
+
+        <h2>6. Fehlerbehebung</h2>
+        <p>Falls Sie auf Probleme stoßen, stellen Sie sicher, dass:</p>
+        <ul>
+            <li>Der Node.js-Server ordnungsgemäß läuft (keine Fehlermeldungen im Terminal).</li>
+            <li>Das Tampermonkey-Skript aktiviert ist und auf YouTube funktioniert.</li>
+            <li>Die OBS-Browser-Quelle korrekt auf die <code>now_playing.html</code> verweist.</li>
+        </ul>
+
+        <p>Viel Erfolg mit Ihrer "Now Playing"-Integration!</p>
+    </div>
+</body>
+</html>
+
